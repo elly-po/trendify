@@ -13,6 +13,13 @@ export default defineConfig({
     headers: {
       'Cache-Control': 'no-cache'
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
     watch: {
       // Exclude directories to prevent file descriptor overflow
       ignored: [
