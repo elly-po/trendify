@@ -21,8 +21,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Import route modules
+import { setupCampaignRoutes } from "./campaigns";
+import { setupCreatorRoutes } from "./creators";
+
 // Setup authentication routes
 setupAuth(app);
+
+// Setup campaign and creator routes
+setupCampaignRoutes(app);
+setupCreatorRoutes(app);
 
 // Health check
 app.get("/api/health", (req, res) => {

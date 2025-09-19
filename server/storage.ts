@@ -1,7 +1,7 @@
 // Storage implementation for TrendifyGo - from javascript_auth_all_persistance integration
-import { users, creatorProfiles, brandProfiles, campaigns, type User, type InsertUser, type CreatorProfile, type InsertCreatorProfile, type BrandProfile, type InsertBrandProfile } from "../shared/schema";
+import { users, creatorProfiles, brandProfiles, campaigns, type User, type InsertUser, type CreatorProfile, type InsertCreatorProfile, type BrandProfile, type InsertBrandProfile, type Campaign, type InsertCampaign } from "../shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, ilike, desc, gte, lte, and } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -15,11 +15,20 @@ export interface IStorage {
   getCreatorProfile(userId: number): Promise<CreatorProfile | undefined>;
   createCreatorProfile(insertCreatorProfile: InsertCreatorProfile): Promise<CreatorProfile>;
   updateCreatorProfile(userId: number, updates: Partial<InsertCreatorProfile>): Promise<CreatorProfile | undefined>;
+  getAllCreators(filters?: { category?: string; minFollowers?: number; maxPrice?: number }): Promise<any[]>;
+  searchCreators(query: string, filters?: { category?: string }): Promise<any[]>;
   
   // Brand profile methods  
   getBrandProfile(userId: number): Promise<BrandProfile | undefined>;
   createBrandProfile(insertBrandProfile: InsertBrandProfile): Promise<BrandProfile>;
   updateBrandProfile(userId: number, updates: Partial<InsertBrandProfile>): Promise<BrandProfile | undefined>;
+  
+  // Campaign methods
+  getCampaign(id: number): Promise<Campaign | undefined>;
+  getCampaignsByBrandUser(brandUserId: number): Promise<Campaign[]>;
+  createCampaign(insertCampaign: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: number, updates: Partial<InsertCampaign>): Promise<Campaign | undefined>;
+  deleteCampaign(id: number): Promise<boolean>;
   
   sessionStore: session.SessionStore;
 }
@@ -98,6 +107,90 @@ export class DatabaseStorage implements IStorage {
       .where(eq(brandProfiles.userId, userId))
       .returning();
     return profile || undefined;
+  }
+  
+  // Creator discovery methods with filters
+  async getAllCreators(filters?: { category?: string; minFollowers?: number; maxPrice?: number }): Promise<any[]> {
+    let query = db
+      .select()
+      .from(creatorProfiles)
+      .innerJoin(users, eq(creatorProfiles.userId, users.id));
+
+    // Apply filters if provided
+    const conditions = [];
+    if (filters?.minFollowers) {
+      conditions.push(gte(creatorProfiles.tiktokFollowers, filters.minFollowers));
+    }
+    if (filters?.category) {
+      conditions.push(ilike(creatorProfiles.contentCategories, `%${filters.category}%`));
+    }
+    if (filters?.maxPrice) {
+      conditions.push(lte(creatorProfiles.collaborationRate, filters.maxPrice.toString()));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const results = await query.orderBy(desc(creatorProfiles.tiktokFollowers));
+    return results;
+  }
+
+  async searchCreators(searchQuery: string, filters?: { category?: string }): Promise<any[]> {
+    const conditions = [ilike(users.displayName, `%${searchQuery}%`)];
+    
+    if (filters?.category) {
+      conditions.push(ilike(creatorProfiles.contentCategories, `%${filters.category}%`));
+    }
+
+    const results = await db
+      .select()
+      .from(creatorProfiles)
+      .innerJoin(users, eq(creatorProfiles.userId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(creatorProfiles.tiktokFollowers));
+
+    return results;
+  }
+
+  // Campaign methods
+  async getCampaign(id: number): Promise<Campaign | undefined> {
+    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
+    return campaign || undefined;
+  }
+
+  async getCampaignsByBrandUser(brandUserId: number): Promise<Campaign[]> {
+    const results = await db
+      .select()
+      .from(campaigns)
+      .where(eq(campaigns.brandUserId, brandUserId))
+      .orderBy(desc(campaigns.createdAt));
+    return results;
+  }
+
+  async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
+    const [campaign] = await db
+      .insert(campaigns)
+      .values(insertCampaign)
+      .returning();
+    return campaign;
+  }
+
+  async updateCampaign(id: number, updates: Partial<InsertCampaign>): Promise<Campaign | undefined> {
+    const [campaign] = await db
+      .update(campaigns)
+      .set(updates)
+      .where(eq(campaigns.id, id))
+      .returning();
+    return campaign || undefined;
+  }
+
+  async deleteCampaign(id: number): Promise<boolean> {
+    const result = await db
+      .delete(campaigns)
+      .where(eq(campaigns.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 
