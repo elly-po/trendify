@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Pricing() {
   const plans = [
     {
@@ -101,13 +103,26 @@ function Pricing() {
                 ))}
               </ul>
               
-              <button className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-                plan.popular 
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700' 
-                  : 'border-2 border-gray-300 text-gray-700 hover:border-gray-400'
-              }`}>
-                {plan.cta}
-              </button>
+              {plan.cta === "Contact Sales" ? (
+                <button className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
+                  plan.popular 
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700' 
+                    : 'border-2 border-gray-300 text-gray-700 hover:border-gray-400'
+                }`}>
+                  {plan.cta}
+                </button>
+              ) : (
+                <Link 
+                  to={plan.name.toLowerCase().includes('creator') ? '/creator' : '/brand'}
+                  className={`w-full py-3 px-4 rounded-lg font-semibold transition-all text-center block ${
+                    plan.popular 
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700' 
+                      : 'border-2 border-gray-300 text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              )}
             </div>
           ))}
         </div>
