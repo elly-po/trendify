@@ -251,6 +251,7 @@ function AuthPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
+                onClick={() => console.log("🚀 Submit button clicked!", { isSubmitting, isLogin })}
                 className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isSubmitting ? (
