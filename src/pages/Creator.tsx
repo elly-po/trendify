@@ -1,13 +1,39 @@
-import { TrendingUp, Eye, Heart, Share, Users, Calendar, Target, DollarSign, BarChart3, Settings } from "lucide-react";
+import { TrendingUp, Eye, Heart, Share, Users, Calendar, Target, DollarSign, BarChart3, Settings, Loader2, User } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "../lib/queryClient";
 
 function Creator() {
-  // Mock data for demonstration
+  const { user } = useAuth();
+  
+  // Fetch user profile data
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const response = await apiRequest("/api/profile");
+      return response.json();
+    },
+    enabled: !!user,
+  });
+
+  // Use real data from profile, fallback to defaults for new users
   const stats = {
-    followers: "127.5K",
-    avgViews: "45.2K",
-    engagementRate: "8.4%",
-    monthlyEarnings: "$3,247"
+    followers: profile?.followerCount ? `${(profile.followerCount / 1000).toFixed(1)}K` : "0",
+    avgViews: profile?.averageViews ? `${(profile.averageViews / 1000).toFixed(1)}K` : "0",
+    engagementRate: profile?.engagementRate ? `${profile.engagementRate}%` : "0%",
+    monthlyEarnings: profile?.monthlyEarnings ? `$${profile.monthlyEarnings.toLocaleString()}` : "$0"
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const recentVideos = [
     {
@@ -68,8 +94,23 @@ function Creator() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Creator Dashboard</h1>
-          <p className="text-gray-600">Manage your content, track performance, and discover new opportunities</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome back, {user?.username}!
+              </h1>
+              <p className="text-gray-600">Manage your content, track performance, and discover new opportunities</p>
+            </div>
+            <div className="flex items-center space-x-3 bg-white rounded-lg px-4 py-2 shadow-sm">
+              <div className="h-10 w-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">{user?.username}</p>
+                <p className="text-sm text-gray-500 capitalize">{user?.userType} Account</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Stats Overview */}
