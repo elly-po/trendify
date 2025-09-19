@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { Loader2, UserPlus, LogIn, TrendingUp, Users, BarChart3, Zap } from "lucide-react";
+import { Loader2, UserPlus, LogIn, Users, BarChart3, Zap } from "lucide-react";
 
 function AuthPage() {
   const { user, isLoading, loginMutation, registerMutation } = useAuth();
@@ -30,6 +30,7 @@ function AuthPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("🔥 Form submitted!", { isLogin, username: formData.username });
     
     if (isLogin) {
       loginMutation.mutate({

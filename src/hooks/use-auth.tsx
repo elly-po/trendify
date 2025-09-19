@@ -59,15 +59,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<User | undefined, Error>({
+  } = useQuery<User | null>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/user");
+        return await response.json();
+      } catch (error: any) {
+        console.log("Auth check failed:", error.message);
+        if (error.message.includes("401") || error.message.includes("Unauthorized") || error.message.includes("403")) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    retry: false,
   });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      console.log("Attempting login with:", credentials.username);
       const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+      const userData = await res.json();
+      console.log("Login successful:", userData);
+      return userData;
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -75,8 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Welcome back!",
         description: `Successfully logged in as ${user.displayName}`,
       });
+      console.log("User logged in successfully:", user);
     },
     onError: (error: Error) => {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message,
@@ -87,8 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
+      console.log("Attempting registration with:", credentials.username);
       const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+      const userData = await res.json();
+      console.log("Registration successful:", userData);
+      return userData;
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -96,8 +116,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Welcome to TrendifyGo!",
         description: `Account created successfully for ${user.displayName}`,
       });
+      console.log("User registered successfully:", user);
     },
     onError: (error: Error) => {
+      console.error("Registration error:", error);
       toast({
         title: "Registration failed",
         description: error.message,
@@ -129,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user: user ?? null,
+        user,
         isLoading,
         error,
         loginMutation,
