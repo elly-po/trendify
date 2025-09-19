@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5000,
     // Allow all hosts for Replit proxy support
-    allowedHosts: 'all',
+    allowedHosts: true,
     headers: {
       'Cache-Control': 'no-cache'
     }
