@@ -1,29 +1,25 @@
 // Main server entry point for TrendifyGo
 import express from "express";
+import cors from "cors";
 import { setupAuth } from "./auth";
 import type { Express } from "express";
 
 const app: Express = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 8000;
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === "production" ? 
+    process.env.FRONTEND_URL || "https://your-domain.com" : 
+    "http://localhost:5000",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+}));
 
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// CORS for development
-if (process.env.NODE_ENV !== "production") {
-  app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:5000");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    if (req.method === "OPTIONS") {
-      res.sendStatus(200);
-      return;
-    }
-    next();
-  });
-}
 
 // Setup authentication routes
 setupAuth(app);

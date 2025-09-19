@@ -1,5 +1,5 @@
 // Storage implementation for TrendifyGo - from javascript_auth_all_persistance integration
-import { users, creatorProfiles, brandProfiles, campaigns, type User, type InsertUser, type CreatorProfile, type InsertCreatorProfile, type BrandProfile, type InsertBrandProfile } from "@shared/schema";
+import { users, creatorProfiles, brandProfiles, campaigns, type User, type InsertUser, type CreatorProfile, type InsertCreatorProfile, type BrandProfile, type InsertBrandProfile } from "../shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import session from "express-session";
