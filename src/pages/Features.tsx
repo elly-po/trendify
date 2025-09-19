@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 import { BarChart3, Bot, Users, TrendingUp, Zap, DollarSign, Target, Calendar, Search, Shield, Globe, Smartphone } from "lucide-react";
 
 function Features() {

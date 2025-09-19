@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 import Hero from "../components/Hero";
 import Features from "../components/Features";
 import Pricing from "../components/Pricing";

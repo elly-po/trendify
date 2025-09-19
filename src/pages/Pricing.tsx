@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 import { Check, Star, Zap, Users, BarChart3, Headphones } from "lucide-react";
 
 function Pricing() {

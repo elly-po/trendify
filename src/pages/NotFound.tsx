@@ -1,18 +1,18 @@
-import { useLocation } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useEffect } from "react";
 
 /**
  * Default 404 page, displayed when a user attempts to access a non-existent route.
  */
 const NotFound = () => {
-  const location = useLocation();
+  const [location] = useLocation();
 
   useEffect(() => {
     console.error(
       "404 not found: User attempted to access non-existent route:",
-      location.pathname
+      location
     );
-  }, [location.pathname]);
+  }, [location]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen space-y-4">
