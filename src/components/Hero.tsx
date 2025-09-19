@@ -14,26 +14,71 @@ function Hero() {
             Bridge the gap between brands and creators with data-driven insights, automated campaign management, and intelligent trend discovery. Grow your TikTok presence with confidence.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link 
-                to="/creator" 
-                className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition-all transform hover:scale-105 text-center"
-              >
-                Start as Creator
-              </Link>
-              <Link 
-                to="/brand" 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 text-center"
-              >
-                Start as Brand
-              </Link>
-            </div>
+          {/* Path Selection Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 mt-12">
+            {/* Creator Section */}
+            <Link 
+              to="/creator" 
+              className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border border-gray-100"
+            >
+              <div className="text-center">
+                <div className="mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-3xl">🎨</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
+                    Start as Creator
+                  </h3>
+                </div>
+                <p className="text-gray-600 text-lg leading-relaxed mb-6">
+                  Find the best deals from brands and companies needing your skills. Connect with brands looking for authentic partnerships.
+                </p>
+                <div className="flex items-center justify-center space-x-4 text-sm text-gray-500 mb-6">
+                  <span className="flex items-center">📊 Analytics</span>
+                  <span className="flex items-center">💰 Monetization</span>
+                  <span className="flex items-center">🤝 Brand Partnerships</span>
+                </div>
+                <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold group-hover:from-pink-600 group-hover:to-purple-700 transition-all">
+                  Get Started →
+                </div>
+              </div>
+            </Link>
+
+            {/* Brand Section */}
+            <Link 
+              to="/brand" 
+              className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border border-gray-100"
+            >
+              <div className="text-center">
+                <div className="mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-3xl">🏢</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    Start as Brand
+                  </h3>
+                </div>
+                <p className="text-gray-600 text-lg leading-relaxed mb-6">
+                  Get your products to the best recommended creators to meet your marketing needs. Discover perfect influencer matches.
+                </p>
+                <div className="flex items-center justify-center space-x-4 text-sm text-gray-500 mb-6">
+                  <span className="flex items-center">🎯 Targeting</span>
+                  <span className="flex items-center">📈 Campaigns</span>
+                  <span className="flex items-center">⚡ Automation</span>
+                </div>
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold group-hover:from-blue-600 group-hover:to-blue-700 transition-all">
+                  Get Started →
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="text-center mb-8">
             <Link 
               to="/features" 
-              className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-gray-400 transition-all"
+              className="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold transition-colors"
             >
-              Watch Demo
+              Watch Demo & See All Features →
             </Link>
           </div>
           
