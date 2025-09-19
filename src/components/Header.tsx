@@ -15,6 +15,12 @@ function Header() {
           </div>
           
           <nav className="hidden md:flex space-x-8">
+            <Link to="/creator" className="text-gray-600 hover:text-gray-900 transition-colors">
+              For Creators
+            </Link>
+            <Link to="/brand" className="text-gray-600 hover:text-gray-900 transition-colors">
+              For Brands
+            </Link>
             <Link to="/features" className="text-gray-600 hover:text-gray-900 transition-colors">
               Features
             </Link>
