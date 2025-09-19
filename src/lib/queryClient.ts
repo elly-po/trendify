@@ -10,8 +10,8 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Use relative URLs for better dev proxy support and production compatibility
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8000';
+// Use relative URLs for better Replit proxy support
+const API_BASE_URL = '';
 
 export async function apiRequest(method: string, url: string, body?: any) {
   const fullUrl = `${API_BASE_URL}${url}`;

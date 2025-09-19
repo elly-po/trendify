@@ -5,7 +5,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 // User type from our schema
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<User | null>({
+  } = useQuery<User | null | undefined>({
     queryKey: ["/api/user"],
     queryFn: async () => {
       try {
