@@ -12,6 +12,16 @@ export default defineConfig({
     allowedHosts: true,
     headers: {
       'Cache-Control': 'no-cache'
+    },
+    watch: {
+      // Exclude directories to prevent file descriptor overflow
+      ignored: [
+        '**/node_modules/**',
+        '**/.cache/**',
+        '**/dist/**',
+        '**/build/**'
+      ],
+      usePolling: false
     }
   },
   preview: {
