@@ -15,7 +15,6 @@ const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localh
 
 export async function apiRequest(method: string, url: string, body?: any) {
   const fullUrl = `${API_BASE_URL}${url}`;
-  console.log(`🌐 API Request: ${method} ${fullUrl}`);
   
   const response = await fetch(fullUrl, {
     method,
