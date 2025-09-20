@@ -24,16 +24,50 @@ function Creator() {
     enabled: !!user,
   });
 
-  // Enhanced analytics data
+  // Fetch real creator analytics
+  const { data: creatorAnalytics } = useQuery({
+    queryKey: ["creator-analytics", user?.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/creator-analytics/${user?.id}`);
+      return await response.json();
+    },
+    enabled: !!user && user.userType === "creator",
+  });
+
+  // Fetch trending data
+  const { data: trendingData } = useQuery({
+    queryKey: ["trending"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/trending");
+      return await response.json();
+    },
+    enabled: !!user,
+  });
+
+  // Fetch brand opportunities for creators
+  const { data: brandOpportunities } = useQuery({
+    queryKey: ["brand-opportunities", user?.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/brand-opportunities");
+      return await response.json();
+    },
+    enabled: !!user && user.userType === "creator",
+  });
+
+  // Use real TikTok analytics data only - no hardcoded fallbacks in Phase 2
   const analyticsData = {
-    totalViews: profile?.totalViews || 2847392,
-    totalFollowers: profile?.followerCount || 128742,
-    engagementRate: profile?.engagementRate || 4.7,
-    avgViews: profile?.averageViews || 85420,
-    monthlyEarnings: profile?.monthlyEarnings || 3247,
-    weeklyGrowth: profile?.weeklyGrowth || 12.4,
-    videoCount: profile?.videoCount || 247,
-    totalLikes: profile?.totalLikes || 1583924
+    totalViews: creatorAnalytics?.performance?.avgViews * (creatorAnalytics?.profile?.videoCount || 1) || 0,
+    totalFollowers: creatorAnalytics?.profile?.followers || 0,
+    engagementRate: creatorAnalytics?.profile?.engagementRate || 0,
+    avgViews: creatorAnalytics?.performance?.avgViews || 0,
+    monthlyEarnings: creatorAnalytics?.earnings?.estimatedMonthly || 0,
+    weeklyGrowth: creatorAnalytics?.growth?.followerGrowth || 0,
+    videoCount: creatorAnalytics?.profile?.videoCount || 0,
+    totalLikes: creatorAnalytics?.profile?.totalLikes || 0,
+    isVerified: creatorAnalytics?.profile?.isVerified || false,
+    avgLikes: creatorAnalytics?.performance?.avgLikes || 0,
+    avgShares: creatorAnalytics?.performance?.avgShares || 0,
+    avgComments: creatorAnalytics?.performance?.avgComments || 0
   };
 
   if (isLoading) {
@@ -47,136 +81,42 @@ function Creator() {
     );
   }
 
-  // Real-time trending hashtags and viral content data
-  const trendingHashtags = [
-    { tag: "#morningroutine", posts: "2.4M", growth: "+23%", trending: true },
-    { tag: "#productivity", posts: "1.8M", growth: "+18%", trending: true },
-    { tag: "#selfcare", posts: "3.1M", growth: "+45%", trending: true },
-    { tag: "#fitness", posts: "8.7M", growth: "+12%", trending: false },
-    { tag: "#wellness", posts: "2.9M", growth: "+31%", trending: true }
-  ];
+  // Use real TikTok trending data only - no fallbacks in Phase 2
+  const trendingHashtags = trendingData?.hashtags?.slice(0, 5) || [];
 
-  const viralContent = [
-    {
-      id: 1,
-      title: "5-Minute Morning Workout",
-      creator: "@fitnessguru",
-      views: "4.2M",
-      engagement: "18.5%",
-      category: "Fitness",
-      viralScore: 98
-    },
-    {
-      id: 2,
-      title: "Productivity Hacks That Changed My Life",
-      creator: "@productivitypro",
-      views: "3.7M",
-      engagement: "21.2%",
-      category: "Lifestyle",
-      viralScore: 95
-    },
-    {
-      id: 3,
-      title: "Healthy Meal Prep Ideas",
-      creator: "@healthyeats",
-      views: "2.9M",
-      engagement: "16.8%",
-      category: "Food",
-      viralScore: 92
-    }
-  ];
+  // Use real recent videos from creator analytics - no mock data in Phase 2
+  const viralContent = creatorAnalytics?.recentVideos?.slice(0, 3).map((video, index) => ({
+    id: index + 1,
+    title: `Video ${index + 1}`,
+    creator: `@${user?.username}`,
+    views: `${Math.floor(video.view_count / 1000)}K`,
+    engagement: `${video.engagement_rate.toFixed(1)}%`,
+    category: video.hashtags?.[0] || "General",
+    viralScore: Math.floor(video.engagement_rate * 10 + (video.view_count / 10000))
+  })) || [];
 
-  const contentPerformance = [
-    {
-      id: 1,
-      title: "Morning Routine for Success",
-      thumbnail: "🌅",
-      views: "324.8K",
-      likes: "45.2K", 
-      comments: "3.1K",
-      shares: "8.7K",
-      posted: "3 days ago",
-      engagement: "14.2%",
-      predicted: "High viral potential"
-    },
-    {
-      id: 2,
-      title: "Productivity Tools Review",
-      thumbnail: "⚡",
-      views: "189.4K",
-      likes: "28.9K",
-      comments: "2.4K", 
-      shares: "5.2K",
-      posted: "6 days ago",
-      engagement: "18.7%",
-      predicted: "Peak performance"
-    },
-    {
-      id: 3,
-      title: "Healthy Breakfast Ideas",
-      thumbnail: "🥗",
-      views: "267.1K",
-      likes: "38.4K",
-      comments: "4.2K",
-      shares: "7.9K",
-      posted: "1 week ago",
-      engagement: "16.9%",
-      predicted: "Growing steadily"
-    }
-  ];
+  // Use real recent videos from creator analytics - no mock data in Phase 2
+  const contentPerformance = creatorAnalytics?.recentVideos?.map((video, index) => ({
+    id: index + 1,
+    title: `Video ${index + 1}`,
+    thumbnail: video.hashtags?.[0] ? `#${video.hashtags[0]}` : "📹",
+    views: `${Math.floor(video.view_count / 1000)}K`,
+    likes: `${Math.floor(video.like_count / 1000)}K`,
+    comments: `${video.comment_count}`,
+    shares: `${video.share_count}`,
+    posted: new Date(video.create_time).toLocaleDateString(),
+    engagement: `${video.engagement_rate.toFixed(1)}%`,
+    predicted: video.engagement_rate > 5 ? "High viral potential" : "Growing steadily"
+  })) || [];
 
-  const campaignOpportunities = [
-    {
-      brand: "FitLife Supplements",
-      campaign: "New Year Wellness Challenge",
-      payment: "$1,250",
-      deadline: "Jan 15, 2025",
-      type: "Sponsored Post",
-      requirements: "1 video + 3 stories",
-      matchScore: 94,
-      category: "Health & Fitness"
-    },
-    {
-      brand: "ProductivityPro App",
-      campaign: "2025 Goal Setting Campaign", 
-      payment: "$2,100",
-      deadline: "Jan 10, 2025",
-      type: "Product Review",
-      requirements: "2 videos + live demo",
-      matchScore: 89,
-      category: "Productivity"
-    },
-    {
-      brand: "StyleHub Fashion",
-      campaign: "Winter Fashion Haul",
-      payment: "$1,650",
-      deadline: "Jan 20, 2025",
-      type: "Fashion Showcase",
-      requirements: "1 outfit video + styling tips",
-      matchScore: 87,
-      category: "Fashion"
-    }
-  ];
+  // Use real brand opportunities from API - no mock data in Phase 2  
+  const campaignOpportunities = brandOpportunities?.opportunities || [];
 
-  const audienceInsights = {
-    demographics: [
-      { age: "18-24", percentage: 35, gender: "65% F, 35% M" },
-      { age: "25-34", percentage: 42, gender: "58% F, 42% M" },
-      { age: "35-44", percentage: 18, gender: "52% F, 48% M" },
-      { age: "45+", percentage: 5, gender: "48% F, 52% M" }
-    ],
-    topLocations: [
-      { country: "United States", percentage: 45 },
-      { country: "Canada", percentage: 18 },
-      { country: "United Kingdom", percentage: 12 },
-      { country: "Australia", percentage: 8 },
-      { country: "Germany", percentage: 6 }
-    ],
-    peakHours: [
-      { time: "6:00-8:00 AM", engagement: "High" },
-      { time: "12:00-2:00 PM", engagement: "Medium" },
-      { time: "8:00-11:00 PM", engagement: "Very High" }
-    ]
+  // Use real audience insights from creator analytics - no hardcoded data in Phase 2
+  const audienceInsights = creatorAnalytics?.audienceInsights || {
+    demographics: [],
+    topLocations: [],
+    peakHours: []
   };
 
   const tabItems = [
@@ -507,22 +447,22 @@ function Creator() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  {campaignOpportunities.map((campaign, index) => (
+                  {(brandOpportunities?.opportunities || campaignOpportunities).map((campaign, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-6 hover:border-purple-300 transition-colors">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{campaign.brand}</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{campaign.brandName || campaign.brand}</h3>
                             <span className="px-2 py-1 bg-green-100 text-green-700 text-sm font-medium rounded">
-                              {campaign.payment}
+                              {campaign.budget || campaign.payment}
                             </span>
                             <div className="flex items-center">
                               <span className="text-sm text-purple-600 font-medium">{campaign.matchScore}% match</span>
                               <Star className="h-4 w-4 text-purple-600 ml-1" />
                             </div>
                           </div>
-                          <p className="text-gray-700 mb-2">{campaign.campaign}</p>
-                          <p className="text-sm text-gray-600 mb-3">{campaign.requirements}</p>
+                          <p className="text-gray-700 mb-2">{campaign.campaignTitle || campaign.campaign}</p>
+                          <p className="text-sm text-gray-600 mb-3">{campaign.description || campaign.requirements}</p>
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <span className="flex items-center">
                               <Calendar className="h-4 w-4 mr-1" />
