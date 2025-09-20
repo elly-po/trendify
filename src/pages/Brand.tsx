@@ -54,17 +54,15 @@ function Brand() {
     enabled: !!user && user.userType === "brand",
   });
 
-  // Fetch creator recommendations for brands
-  const { data: creatorRecommendations } = useQuery({
-    queryKey: ["creator-recommendations", user?.id],
+  // Creator recommendations disabled until endpoint is implemented
+  // TODO: Implement POST /api/creator-recommendations endpoint
+  const creatorRecommendations = null;
+
+  // Fetch real trending data from TikTok API
+  const { data: trendingData } = useQuery({
+    queryKey: ["trending"],
     queryFn: async () => {
-      const response = await apiRequest("POST", "/api/creator-recommendations", {
-        category: "lifestyle",
-        minFollowers: 10000,
-        maxFollowers: 1000000,
-        engagementThreshold: 2.0,
-        budget: 2000
-      });
+      const response = await apiRequest("/api/trending");
       return await response.json();
     },
     enabled: !!user && user.userType === "brand",
@@ -76,10 +74,10 @@ function Brand() {
     activeCampaigns: profile?.activeCampaigns || 0,
     avgROAS: profile?.avgROAS || 0,
     creatorsWorkedWith: profile?.creatorsWorkedWith || 0,
-    totalReach: profile?.totalReach || 18500000,
-    totalEngagement: profile?.totalEngagement || 1847329,
-    conversionRate: profile?.conversionRate || 2.8,
-    cpm: profile?.cpm || 4.75
+    totalReach: profile?.totalReach || 0,
+    totalEngagement: profile?.totalEngagement || 0,
+    conversionRate: profile?.conversionRate || 0,
+    cpm: profile?.cpm || 0
   };
 
   if (isLoading) {
@@ -93,68 +91,23 @@ function Brand() {
     );
   }
 
-  // Transform and use real campaign data or fallback to static data
+  // Use real campaign data only - no synthetic fallbacks in Phase 2
   const campaignData = campaignsData?.map(campaign => ({
     id: campaign.id,
     name: campaign.title || campaign.name || "Untitled Campaign",
     status: campaign.status?.charAt(0).toUpperCase() + campaign.status?.slice(1) || "Draft", 
     budget: campaign.budget || 0,
-    spent: Math.floor((campaign.budget || 0) * 0.7), // Estimate 70% spent
-    creators: 3, // Default estimate
-    reach: Math.floor((campaign.budget || 0) * 200), // Estimate reach
-    engagement: Math.floor(Math.random() * 15000) + 5000,
-    roi: ((campaign.budget || 0) > 0 ? 2.8 + Math.random() * 1.2 : 0).toFixed(1),
-    conversions: Math.floor((campaign.budget || 0) * 0.025),
-    progress: campaign.status === "completed" ? 100 : Math.floor(Math.random() * 80) + 20
-  })) || [
-    {
-      id: 1,
-      name: "Holiday Fashion Collection 2024",
-      status: "Active",
-      budget: 15000,
-      spent: 11240,
-      creators: 12,
-      reach: 4200000,
-      engagement: 287000,
-      conversions: 1847,
-      roi: 3.4,
-      endDate: "2024-12-31",
-      category: "Fashion",
-      progress: 75
-    },
-    {
-      id: 2,
-      name: "Fitness New Year Challenge",
-      status: "Active", 
-      budget: 22000,
-      spent: 6800,
-      creators: 18,
-      reach: 6100000,
-      engagement: 445000,
-      conversions: 2934,
-      roi: 4.2,
-      endDate: "2025-01-31",
-      category: "Health & Fitness",
-      progress: 31
-    },
-    {
-      id: 3,
-      name: "Tech Product Launch",
-      status: "Planning",
-      budget: 18500,
-      spent: 0,
-      creators: 8,
-      reach: 0,
-      engagement: 0,
-      conversions: 0,
-      roi: 0,
-      endDate: "2025-02-15",
-      category: "Technology",
-      progress: 0
-    }
-  ];
+    // Only include metrics if available from real campaign data
+    ...(campaign.spent !== undefined && { spent: campaign.spent }),
+    ...(campaign.creators !== undefined && { creators: campaign.creators }),
+    ...(campaign.reach !== undefined && { reach: campaign.reach }),
+    ...(campaign.engagement !== undefined && { engagement: campaign.engagement }),
+    ...(campaign.roi !== undefined && { roi: campaign.roi }),
+    ...(campaign.conversions !== undefined && { conversions: campaign.conversions }),
+    progress: campaign.status === "completed" ? 100 : (campaign.progress || 0)
+  })) || [];
 
-  // Use intelligent creator recommendations or fallback to discovery data
+  // Use real creator recommendations only - no synthetic data in Phase 2
   const topCreators = (creatorRecommendations?.recommendations?.slice(0, 4) || creatorsData?.slice(0, 4) || []).map((creator: any) => ({
     id: creator.id,
     name: `@${creator.username}`,
@@ -162,82 +115,13 @@ function Brand() {
     followers: creator.followers,
     engagement: creator.engagementRate,
     niche: creator.contentCategories?.[0] || "General",
-    pricePerPost: parseInt(creator.collaborationRate) || 750,
-    rating: 4.5 + Math.random() * 0.4,
-    completionRate: 90 + Math.floor(Math.random() * 10),
+    pricePerPost: Number(creator.collaborationRate) || 0,
     avgViews: creator.avgViews,
-    demographics: { age: "25-34", gender: "65% F", location: "US" },
-    lastCampaign: "Previous Campaign",
     performance: creator.engagementRate > 7 ? "High" : "Good",
     availability: creator.availableForCollabs ? "Available" : "Busy"
-  })) || [
-    {
-      id: 1,
-      name: "@fitlifejenny",
-      avatar: "💪",
-      followers: 450000,
-      engagement: 8.2,
-      niche: "Fitness & Wellness",
-      pricePerPost: 1200,
-      rating: 4.9,
-      completionRate: 98,
-      avgViews: 125000,
-      demographics: { age: "25-34", gender: "65% F", location: "US" },
-      lastCampaign: "Fitness Challenge 2024",
-      performance: "High",
-      availability: "Available"
-    },
-    {
-      id: 2,
-      name: "@techreviewpro", 
-      avatar: "📱",
-      followers: 320000,
-      engagement: 7.8,
-      niche: "Technology",
-      pricePerPost: 950,
-      rating: 4.8,
-      completionRate: 95,
-      avgViews: 98000,
-      demographics: { age: "18-35", gender: "72% M", location: "Global" },
-      lastCampaign: "Smart Device Reviews",
-      performance: "High",
-      availability: "Busy until Jan 15"
-    },
-    {
-      id: 3,
-      name: "@stylegurumax",
-      avatar: "👗",
-      followers: 680000,
-      engagement: 9.1,
-      niche: "Fashion & Style",
-      pricePerPost: 1800,
-      rating: 4.9,
-      completionRate: 100,
-      avgViews: 189000,
-      demographics: { age: "18-28", gender: "78% F", location: "US/UK" },
-      lastCampaign: "Summer Collection 2024",
-      performance: "Exceptional",
-      availability: "Available"
-    },
-    {
-      id: 4,
-      name: "@foodadventurer",
-      avatar: "🍕",
-      followers: 290000,
-      engagement: 6.5,
-      niche: "Food & Lifestyle",
-      pricePerPost: 750,
-      rating: 4.7,
-      completionRate: 92,
-      avgViews: 67000,
-      demographics: { age: "22-40", gender: "58% F", location: "US" },
-      lastCampaign: "Healthy Eating Challenge",
-      performance: "Good",
-      availability: "Available"
-    }
-  ];
+  })) || [];
 
-  // Use real analytics data or fallback to static data
+  // Use real analytics data only - no hardcoded fallbacks in Phase 2
   const performanceMetrics = analyticsData ? {
     impressions: analyticsData.totalImpressions,
     clicks: analyticsData.totalClicks,
@@ -248,46 +132,24 @@ function Brand() {
     costPerConversion: parseFloat(analyticsData.avgCPM),
     roas: parseFloat(analyticsData.avgROAS)
   } : {
-    impressions: 18500000,
-    clicks: 521000,
-    conversions: 14620,
-    ctr: 2.8,
-    conversionRate: 2.8,
-    costPerClick: 0.92,
-    costPerConversion: 3.28,
-    roas: 3.2
+    impressions: 0,
+    clicks: 0,
+    conversions: 0,
+    ctr: 0,
+    conversionRate: 0,
+    costPerClick: 0,
+    costPerConversion: 0,
+    roas: 0
   };
 
-  // Trending content opportunities
-  const trendingOpportunities = [
-    {
-      trend: "#morningroutine",
-      posts: "2.4M",
-      growth: "+23%",
-      audience: "18-35F",
-      suggestedBudget: "$5,000",
-      estimatedReach: "1.2M",
-      category: "Lifestyle"
-    },
-    {
-      trend: "#techreview",
-      posts: "1.8M", 
-      growth: "+18%",
-      audience: "25-45M",
-      suggestedBudget: "$8,000",
-      estimatedReach: "950K",
-      category: "Technology"
-    },
-    {
-      trend: "#fashionhaul",
-      posts: "3.1M",
-      growth: "+31%",
-      audience: "16-30F",
-      suggestedBudget: "$6,500",
-      estimatedReach: "1.8M",
-      category: "Fashion"
-    }
-  ];
+  // Use real trending opportunities from TikTok API - no hardcoded data in Phase 2
+  const trendingOpportunities = trendingData?.hashtags?.map(hashtag => ({
+    trend: `#${hashtag.tag}`,
+    posts: hashtag.posts,
+    growth: hashtag.growth,
+    audience: "TikTok Users",
+    category: hashtag.category || "Trending"
+  })) || [];
 
   const tabItems = [
     { id: "overview", label: "Overview", icon: BarChart3 },
