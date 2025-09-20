@@ -474,4 +474,47 @@ export function setupCreatorRoutes(app: Express) {
       res.status(500).json({ message: "Failed to fetch brand opportunities" });
     }
   });
+
+  // Connect TikTok account endpoint - validates and connects creator's TikTok username
+  app.post("/api/creator/connect-tiktok", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const user = req.user as User;
+    if (user.userType !== "creator") {
+      return res.status(403).json({ message: "Only creators can connect TikTok accounts" });
+    }
+    
+    const { tiktokUsername } = req.body;
+    
+    if (!tiktokUsername) {
+      return res.status(400).json({ message: "TikTok username is required" });
+    }
+    
+    try {
+      // Validate TikTok username by fetching profile
+      const tiktokProfile = await tiktokAPI.getCreatorProfile(tiktokUsername);
+      
+      // Update creator profile with validated TikTok username
+      const updatedProfile = await storage.updateCreatorProfile(user.id, {
+        tiktokUsername: tiktokUsername,
+        tiktokFollowers: tiktokProfile.follower_count,
+        averageViews: tiktokProfile.video_count > 0 ? Math.floor(tiktokProfile.likes_count / tiktokProfile.video_count) : 0,
+        engagementRate: tiktokProfile.engagement_rate.toString()
+      });
+      
+      res.json({
+        message: "TikTok account connected successfully",
+        tiktokUsername: tiktokUsername,
+        followers: tiktokProfile.follower_count,
+        verified: tiktokProfile.is_verified,
+        profile: updatedProfile
+      });
+    } catch (error) {
+      console.error("TikTok connection error:", error);
+      res.status(400).json({ 
+        message: "Failed to connect TikTok account. Please check the username and try again.",
+        error: error.message 
+      });
+    }
+  });
 }

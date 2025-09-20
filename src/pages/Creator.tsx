@@ -2,12 +2,105 @@ import {
   TrendingUp, Eye, Heart, Share, Users, Calendar, Target, DollarSign, BarChart3, 
   Loader2, User, Clock, Hash, Award, Video, 
   ThumbsUp, MessageCircle, Star, Filter, ChevronRight,
-  Zap, Globe, Sparkles, ChevronDown, Search
+  Zap, Globe, Sparkles, ChevronDown, Search, Check, X
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "../lib/queryClient";
 import { useState } from "react";
+
+// TikTok Connection Form Component
+function TikTokConnectionForm({ profile, onConnectionUpdate }: { profile: any, onConnectionUpdate: () => void }) {
+  const [tiktokUsername, setTiktokUsername] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(!profile?.tiktokUsername);
+
+  const handleConnect = async () => {
+    if (!tiktokUsername.trim()) {
+      setError("Please enter your TikTok username");
+      return;
+    }
+
+    setIsConnecting(true);
+    setError("");
+
+    try {
+      const response = await apiRequest("POST", "/api/creator/connect-tiktok", {
+        tiktokUsername: tiktokUsername.replace("@", "") // Remove @ if user adds it
+      });
+
+      if (response.ok) {
+        onConnectionUpdate();
+        setShowForm(false);
+        setTiktokUsername("");
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to connect TikTok account");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  if (profile?.tiktokUsername && !showForm) {
+    return (
+      <button
+        onClick={() => setShowForm(true)}
+        className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        Update Connection
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center space-x-3">
+      <div className="flex flex-col space-y-2">
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            placeholder="Enter TikTok username"
+            value={tiktokUsername}
+            onChange={(e) => setTiktokUsername(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            disabled={isConnecting}
+          />
+          <button
+            onClick={handleConnect}
+            disabled={isConnecting || !tiktokUsername.trim()}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors flex items-center space-x-2"
+          >
+            {isConnecting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <Check className="h-4 w-4" />
+                <span>Connect</span>
+              </>
+            )}
+          </button>
+          {showForm && profile?.tiktokUsername && (
+            <button
+              onClick={() => setShowForm(false)}
+              className="px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {error && (
+          <p className="text-red-600 text-xs">{error}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function Creator() {
   const { user } = useAuth();
@@ -191,6 +284,32 @@ function Creator() {
         {/* Tab Content */}
         {selectedTab === "overview" && (
           <div className="space-y-8">
+            {/* TikTok Connection Status */}
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-6 border border-pink-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="h-12 w-12 bg-black rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">tt</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">TikTok Account Connection</h3>
+                    {profile?.tiktokUsername ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-600 font-medium">Connected: @{profile.tiktokUsername}</span>
+                        <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                      </div>
+                    ) : (
+                      <p className="text-amber-600">Connect your TikTok account to see real analytics</p>
+                    )}
+                  </div>
+                </div>
+                <TikTokConnectionForm profile={profile} onConnectionUpdate={() => {
+                  // Refresh profile data to show connection status immediately
+                  window.location.reload();
+                }} />
+              </div>
+            </div>
+
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-xl p-6 shadow-sm border">
